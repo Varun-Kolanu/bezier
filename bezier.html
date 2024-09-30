@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cops Inspiration</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+        }
+    </style>
+</head>
+
+<body>
+    <canvas></canvas>
+    <script>
+        let canvas = document.querySelector("canvas");
+        let c = canvas.getContext("2d");
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        c.fillStyle = "#1c1e1e";
+        c.fillRect(0, 0, canvas.width, canvas.height);
+
+        const radius = 5;
+        const noOfDots = 4;
+
+        let mouse = {
+            x: undefined,
+            y: undefined
+        }
+        window.addEventListener("mousemove", (event) => {
+            mouse.x = event.x;
+            mouse.y = event.y;
+        })
+
+
+        window.addEventListener("resize", () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        })
+
+        let dotcolor = 'white';
+
+        function Point(x, y, r) {
+            this.x = x;
+            this.y = y;
+            this.r = r;
+            this.draw = () => {
+                c.beginPath();
+                c.arc(this.x, this.y, this.r, 0, 2 * Math.PI, false);
+                c.strokeStyle = dotcolor;
+                c.fillStyle = dotcolor;
+                c.stroke();
+                c.fill();
+            };
+
+            this.update = () => {
+
+                
+                this.draw();
+            };
+        }
+
+        let dotArray = [];
+
+        function draw_dots() {
+            for (let i = 0; i < noOfDots; i++) {
+                let r = radius;
+                let x = (Math.random() * (innerWidth - 2 * r) + r);
+                let y = (Math.random() * (innerHeight - 2 * r) + r);
+                let dx = Math.random() * 2;
+                let dy = Math.random() * 2;
+                dotArray.push(new Point(x, y, r, dx, dy, i % 4));
+            }
+        }
+
+        window.addEventListener("click", (event) => {
+            dotArray.push(new Point(event.x, event.y, radius));
+        })
+
+        function join(arr) {
+            for (let i = 0; i < arr.length - 1; i++) {
+                c.strokeStyle = "#666666";
+                c.beginPath();
+                c.moveTo(arr[i].x, arr[i].y);
+                c.lineTo(arr[i+1].x, arr[i+1].y);
+                c.stroke();
+            }
+        }
+
+        const point_radius = 2;
+        function lerp(p0, p1, u) {
+            let p = new Point(0,0,point_radius)
+            p.x = p0.x*(1-u) + p1.x*u;
+            p.y = p0.y*(1-u) + p1.y*u;
+            return p;
+        }
+
+        function drawBezier(p0, p1, p2) {
+            for (let u=0; u<=1; u += 0.001) {
+                const pt1 = lerp(p0, p1, u);
+                const pt2 = lerp(p1, p2, u);
+                const pt = lerp(pt1, pt2, u);
+                c.beginPath();
+                c.strokeStyle = "white";
+                c.arc(pt.x, pt.y, pt.r, 0, 2 * Math.PI, false);
+                c.stroke();
+                c.fill();
+            }
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            c.clearRect(0, 0, innerWidth, innerHeight);
+            c.fillStyle = "#1c1e1e";
+            c.fillRect(0, 0, canvas.width, canvas.height);
+            join(dotArray)
+            for (let i = 0; i < dotArray.length; i++) {
+                dotArray[i].update();
+            }
+            if (dotArray.length === 3) {
+                drawBezier(dotArray[0], dotArray[1], dotArray[2]);
+            }
+            // for (let i = 0; i < dotArray.length; i++) {
+            //     dotArray[i].update();
+            // }
+            // repel(dotArray, mouse.x, mouse.y);
+        }
+
+        animate();
+    </script>
+</body>
+
+</html>
